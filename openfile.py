@@ -27,10 +27,10 @@ def show_paths(path) -> None:
     items.append("..")
 
   for d in onlydirs:
-    items.append(f"[D] {Path(d).name}")
+    items.append(f"[+] {Path(d).name}")
   
   for f in onlyfiles:
-    items.append(f"[F] {Path(f).name}")
+    items.append(f"{Path(f).name}")
 
   proc = Popen(f"rofi -dmenu -i -p '{path}'", stdout=PIPE, stdin=PIPE, shell=True, text=True)
   ans = proc.communicate("\n".join(items))[0].strip()
@@ -40,27 +40,26 @@ def show_paths(path) -> None:
   
   ans = ans.strip()
   
+  # Go to parent
   if ans == "..":
-    # Go to parent
     show_paths(Path(path).parent)
 
+  # Go to exact path
   elif ans.startswith("/") or ans.startswith("~"):
-    # Go to exact path
     show_paths(Path(ans).expanduser())
 
-    # Go to directory or file
-  elif ans.startswith("[D]") or ans.startswith("[F]"):
-    new_path = Path(path) / ans[4:]
-    if new_path.is_dir():
-      # Keep going
-      show_paths(new_path)
-    else:
-      # Output
-      print(new_path)
-      
+  # ezkl helper
   elif ans.startswith("z "):
     ans = check_output(['ezkl', 'jump', ans[2:]]).decode("utf-8").strip()
     show_paths(ans)
+
+  # Keep going if directory
+  elif ans.startswith("[+] "):
+    show_paths(Path(path) / ans[4:])
+  
+  else:
+    # Output file path
+    print(Path(path) / ans)
 
 # Main function
 def main() -> None:
