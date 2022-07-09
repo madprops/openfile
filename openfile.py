@@ -1,4 +1,5 @@
 import os
+import subprocess
 from os import getenv
 from glob import glob
 from os.path import isfile, isdir, join
@@ -45,13 +46,15 @@ def show_paths(path) -> None:
     # Go to directory or file
   elif ans.startswith("[D]") or ans.startswith("[F]"):
     new_path = Path(path) / ans[4:]
-  
-  if isdir(new_path):
-    # Keep going
-    show_paths(new_path)
-  else:
-    # Output
-    print(new_path)
+    if isdir(new_path):
+      # Keep going
+      show_paths(new_path)
+    else:
+      # Output
+      print(new_path)
+  elif ans.startswith("z "):
+    ans = subprocess.check_output(['ezkl', 'jump', ans[2:]]).decode("utf-8").strip()
+    show_paths(ans)
 
 # Main function
 def main() -> None:
