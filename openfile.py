@@ -16,14 +16,18 @@ def get_pwd() -> str:
 
 # Show a directory listing
 def show_paths(path) -> None:
+  path = str(path)
   allfiles = glob(f"{path}/*")
   onlydirs = [f for f in allfiles if isdir(join(path, f))]
   onlyfiles = [f for f in allfiles if isfile(join(path, f))]
 
   onlydirs.sort(key=os.path.getctime, reverse = True)
   onlyfiles.sort(key=os.path.getctime, reverse = True)
-
-  items = [".."]
+  
+  items = []
+  
+  if path != "/":
+    items.append("..")
 
   for d in onlydirs:
     items.append(f"[D] {Path(d).name}")
@@ -37,12 +41,16 @@ def show_paths(path) -> None:
   if ans == "":
     exit(0)
   
+  ans = ans.strip()
+  
   if ans == "..":
     # Go to parent
-    new_path = Path(path).parent
-  elif ans.startswith("/"):
+    show_paths(Path(path).parent)
+
+  elif ans.startswith("/") or ans.startswith("~"):
     # Go to exact path
-    new_path = ans.strip()
+    show_paths(Path(ans).expanduser())
+
     # Go to directory or file
   elif ans.startswith("[D]") or ans.startswith("[F]"):
     new_path = Path(path) / ans[4:]
@@ -52,6 +60,7 @@ def show_paths(path) -> None:
     else:
       # Output
       print(new_path)
+      
   elif ans.startswith("z "):
     ans = subprocess.check_output(['ezkl', 'jump', ans[2:]]).decode("utf-8").strip()
     show_paths(ans)
