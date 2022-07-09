@@ -1,10 +1,8 @@
-import os
-import subprocess
 from os import getenv
+from os.path import getctime
 from glob import glob
-from os.path import isfile, isdir, join
-from subprocess import Popen, PIPE, call
 from pathlib import Path
+from subprocess import Popen, PIPE, check_output
 
 # Remove unecessary characters
 def clean_path(path: str) -> str:
@@ -18,11 +16,10 @@ def get_pwd() -> str:
 def show_paths(path) -> None:
   path = str(path)
   allfiles = glob(f"{path}/*")
-  onlydirs = [f for f in allfiles if isdir(join(path, f))]
-  onlyfiles = [f for f in allfiles if isfile(join(path, f))]
-
-  onlydirs.sort(key=os.path.getctime, reverse = True)
-  onlyfiles.sort(key=os.path.getctime, reverse = True)
+  onlydirs = [f for f in allfiles if (Path(path) / Path(f)).is_dir()]
+  onlyfiles = [f for f in allfiles if (Path(path) / Path(f)).is_file()]
+  onlydirs.sort(key=getctime, reverse = True)
+  onlyfiles.sort(key=getctime, reverse = True)
   
   items = []
   
@@ -54,7 +51,7 @@ def show_paths(path) -> None:
     # Go to directory or file
   elif ans.startswith("[D]") or ans.startswith("[F]"):
     new_path = Path(path) / ans[4:]
-    if isdir(new_path):
+    if new_path.is_dir():
       # Keep going
       show_paths(new_path)
     else:
@@ -62,7 +59,7 @@ def show_paths(path) -> None:
       print(new_path)
       
   elif ans.startswith("z "):
-    ans = subprocess.check_output(['ezkl', 'jump', ans[2:]]).decode("utf-8").strip()
+    ans = check_output(['ezkl', 'jump', ans[2:]]).decode("utf-8").strip()
     show_paths(ans)
 
 # Main function
