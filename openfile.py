@@ -12,6 +12,11 @@ def clean_path(path: str) -> str:
 def get_pwd() -> str:
   return clean_path(str(getenv("PWD")))  
 
+# Get input information using rofi
+def get_input(prompt: str) -> str:
+  proc = Popen(f"rofi -dmenu -p '{prompt}'", stdout=PIPE, stdin=PIPE, shell=True, text=True)
+  return proc.communicate()[0].strip()  
+
 # Show a directory listing
 def show_paths(path) -> None:
   path = str(path)
@@ -25,6 +30,8 @@ def show_paths(path) -> None:
   
   if path != "/":
     items.append("..")
+
+  items.append("[!] New File")
 
   for d in onlydirs:
     items.append(f"[+] {Path(d).name}")
@@ -56,6 +63,14 @@ def show_paths(path) -> None:
   # Keep going if directory
   elif ans.startswith("[+] "):
     show_paths(Path(path) / ans[4:])
+
+  # Handle actions
+  elif ans.startswith("[!] "):
+    action = ans[4:]
+    if action == "New File":
+      name = get_input("File Name")
+      if name != "":
+        print(Path(path) / name)
   
   else:
     # Output file path
