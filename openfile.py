@@ -14,8 +14,8 @@ def get_pwd() -> str:
 
 # Get input information using rofi
 def get_input(prompt: str) -> str:
-  proc = Popen(f"rofi -dmenu -p '{prompt}'", stdout=PIPE, stdin=PIPE, shell=True, text=True)
-  return proc.communicate()[0].strip()  
+  proc = Popen(f"rofi -dmenu -p '{prompt}' -theme-str 'window {{height: 200px;}}'", stdout=PIPE, stdin=PIPE, shell=True, text=True)
+  return proc.communicate()[0].strip()
 
 # Show a directory listing
 def show_paths(path) -> None:
