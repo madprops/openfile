@@ -71,6 +71,8 @@ def show_paths(path) -> None:
       name = get_input("File Name")
       if name != "":
         print(Path(path) / name)
+      else:
+        show_paths(Path(path))
   
   else:
     # Output file path
