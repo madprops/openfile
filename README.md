@@ -1,8 +1,8 @@
-![](https://i.imgur.com/ChDf9Yq.jpg)
+![](https://i.imgur.com/kK2dWjM.gif)
 
 Go to a path and run this
 
-It will open rofi with directories and files
+It will open [rofi](https://github.com/davatorium/rofi) with directories and files
 
 Both sorted by modification date
 
