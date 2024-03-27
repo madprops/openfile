@@ -18,10 +18,20 @@ You can use it like this:
 
 ```
 function o
+  # Run openfile.py and get a path
   set p (python ~/code/openfile/openfile.py)
 
+  # Check if path exists
   if test -n "$p"
-    code "$p"
+    # Resolve symlinks
+    set resolved (readlink -f "$p")
+
+    # Check if directory or file
+    if test -d "$resolved"
+      cd "$resolved"
+    else
+      code "$resolved"
+    end
   end
 end
 ```
