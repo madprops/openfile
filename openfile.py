@@ -31,14 +31,15 @@ def get_input(prompt: str) -> str:
 def show_paths(path: Path) -> None:
     allfiles = glob(f"{str(path)}/*")
     onlydirs = [f for f in allfiles if (path / Path(f)).is_dir()]
-    onlyfiles = [f for f in allfiles if (path / Path(f)).is_file()]
+    onlyfiles = [Path(f).name for f in allfiles if (path / Path(f)).is_file()]
 
     # Get files from immediate subdirectories
     for subdir in onlydirs:
         subdir_path = Path(subdir)
+        subdir_name = subdir_path.name
         subdir_files = glob(f"{str(subdir_path)}/*")
         # Only add files, not subdirectories of subdirectories
-        subdir_onlyfiles = [f for f in subdir_files if Path(f).is_file()]
+        subdir_onlyfiles = [f"{subdir_name}/{Path(f).name}" for f in subdir_files if Path(f).is_file()]
         onlyfiles.extend(subdir_onlyfiles)
 
     # Sort both lists by creation time
@@ -57,7 +58,7 @@ def show_paths(path: Path) -> None:
         items.append(f"[+] {Path(d).name}")
 
     for f in onlyfiles:
-        items.append(f"{Path(f).name}")
+        items.append(f)
 
     proc = Popen(
         f"rofi -dmenu -i -p '{path}'", stdout=PIPE, stdin=PIPE, shell=True, text=True
