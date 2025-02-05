@@ -1,4 +1,4 @@
-from os import getenv
+import os
 from os.path import getctime
 from glob import glob
 from pathlib import Path
@@ -12,7 +12,7 @@ def clean_path(path: str) -> str:
 
 # Get current working directory
 def get_pwd() -> str:
-    return clean_path(str(getenv("PWD")))
+    return clean_path(str(os.getenv("PWD")))
 
 
 # Get input information using rofi
@@ -24,6 +24,7 @@ def get_input(prompt: str) -> str:
         shell=True,
         text=True,
     )
+
     return proc.communicate()[0].strip()
 
 
@@ -31,24 +32,30 @@ def get_input(prompt: str) -> str:
 def show_paths(path: Path) -> None:
     allfiles = glob(f"{str(path)}/*")
     onlydirs = [Path(f) for f in allfiles if (path / Path(f)).is_dir()]
-    onlyfiles = [Path(f) for f in allfiles if (path / Path(f)).is_file()]
+    onlyfiles = [{"file": Path(f), "type": "normal"} for f in allfiles if (path / Path(f)).is_file()]
 
     # Get files from immediate subdirectories
     for subdir in onlydirs:
         subdir_path = Path(subdir)
         subdir_name = subdir_path.name
         subdir_files = glob(f"{str(subdir_path)}/*")
-        subdir_onlyfiles = [Path(f) for f in subdir_files if Path(f).is_file()]
+        subdir_onlyfiles = [{"file": Path(f), "type": "subdir"} for f in subdir_files if Path(f).is_file()]
         onlyfiles.extend(subdir_onlyfiles)
 
-    onlyfiles = [f for f in onlyfiles if not f.name.endswith(".pyc")]
+    onlyfiles = [f for f in onlyfiles if not f["file"].name.endswith(".pyc")]
 
     # Sort both lists by creation time
     onlydirs.sort(key=getctime, reverse=True)
-    onlyfiles.sort(key=getctime, reverse=True)
+    onlyfiles.sort(key=lambda x: getctime(x["file"]), reverse=True)
 
-    dirnames = [Path(d).name for d in onlydirs]
-    filenames = [Path(f).name for f in onlyfiles]
+    dirnames = [str(d) for d in onlydirs]
+    filenames = []
+
+    for item in onlyfiles:
+        if item["type"] == "normal":
+            filenames.append(item["file"].name)
+        elif item["type"] == "subdir":
+            filenames.append(f"{item['file'].parent.name}/{item['file'].name}")
 
     items = []
 
