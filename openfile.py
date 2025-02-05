@@ -1,4 +1,5 @@
 import os
+from sys import argv
 from os.path import getctime
 from glob import glob
 from pathlib import Path
@@ -136,6 +137,9 @@ def show_paths(path: Path) -> None:
 
 # Main function
 def main() -> None:
+    global DEPTH
+
+    DEPTH = int(argv[1]) if len(argv) > 1 else DEPTH
     show_paths(Path(get_pwd()))
 
 

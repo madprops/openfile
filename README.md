@@ -36,4 +36,12 @@ function o
 end
 ```
 
-That is a fish alias to open something with vscode
+That is a fish alias to open something with vscode.
+
+---
+
+It accepts an optional argument which sets the DEPTH.
+
+The depth determines how deep into subdirectories it checks for files.
+
+Its default is 2.
