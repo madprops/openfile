@@ -30,23 +30,25 @@ def get_input(prompt: str) -> str:
 # Show a directory listing
 def show_paths(path: Path) -> None:
     allfiles = glob(f"{str(path)}/*")
-    onlydirs = [f for f in allfiles if (path / Path(f)).is_dir()]
-    onlyfiles = [Path(f).name for f in allfiles if (path / Path(f)).is_file()]
+    onlydirs = [Path(f) for f in allfiles if (path / Path(f)).is_dir()]
+    onlyfiles = [Path(f) for f in allfiles if (path / Path(f)).is_file()]
 
     # Get files from immediate subdirectories
     for subdir in onlydirs:
         subdir_path = Path(subdir)
         subdir_name = subdir_path.name
         subdir_files = glob(f"{str(subdir_path)}/*")
-        # Only add files, not subdirectories of subdirectories
-        subdir_onlyfiles = [f"{subdir_name}/{Path(f).name}" for f in subdir_files if Path(f).is_file()]
+        subdir_onlyfiles = [Path(f) for f in subdir_files if Path(f).is_file()]
         onlyfiles.extend(subdir_onlyfiles)
 
-    onlyfiles = [f for f in onlyfiles if not f.endswith(".pyc")]
+    onlyfiles = [f for f in onlyfiles if not f.name.endswith(".pyc")]
 
     # Sort both lists by creation time
     onlydirs.sort(key=getctime, reverse=True)
     onlyfiles.sort(key=getctime, reverse=True)
+
+    dirnames = [Path(d).name for d in onlydirs]
+    filenames = [Path(f).name for f in onlyfiles]
 
     items = []
 
@@ -56,10 +58,10 @@ def show_paths(path: Path) -> None:
     items.append("[!] Cd Here")
     items.append("[!] New File")
 
-    for d in onlydirs:
+    for d in dirnames:
         items.append(f"[+] {Path(d).name}")
 
-    for f in onlyfiles:
+    for f in filenames:
         items.append(f)
 
     proc = Popen(
