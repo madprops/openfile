@@ -42,6 +42,8 @@ def show_paths(path: Path) -> None:
         subdir_onlyfiles = [f"{subdir_name}/{Path(f).name}" for f in subdir_files if Path(f).is_file()]
         onlyfiles.extend(subdir_onlyfiles)
 
+    onlyfiles = [f for f in onlyfiles if not f.endswith(".pyc")]
+
     # Sort both lists by creation time
     onlydirs.sort(key=getctime, reverse=True)
     onlyfiles.sort(key=getctime, reverse=True)
