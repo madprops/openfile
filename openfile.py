@@ -5,6 +5,10 @@ from pathlib import Path
 from subprocess import Popen, PIPE, check_output
 
 
+# How deep into subdirectories to fetch files
+DEPTH = 2
+
+
 # Remove unecessary characters
 def clean_path(path: str) -> str:
     return path.rstrip("/")
@@ -28,20 +32,38 @@ def get_input(prompt: str) -> str:
     return proc.communicate()[0].strip()
 
 
+# Get files from subdirectories
+def subdir_files(base_dir, depth):
+    def get_files(subdir_path, current_depth):
+        if current_depth > depth:
+            return []
+
+        subdir_files = glob(f"{str(subdir_path)}/*")
+        subdir_onlyfiles = [{"file": Path(f)} for f in subdir_files if Path(f).is_file()]
+        subdir_onlydirs = [Path(d) for d in subdir_files if Path(d).is_dir()]
+
+        for subdir in subdir_onlydirs:
+            subdir_onlyfiles.extend(get_files(subdir, current_depth + 1))
+
+        return subdir_onlyfiles
+
+    onlyfiles = []
+    onlydirs = [Path(d) for d in glob(f"{base_dir}/*") if Path(d).is_dir()]
+
+    for subdir in onlydirs:
+        onlyfiles.extend(get_files(subdir, 1))
+
+    return onlyfiles
+
+
 # Show a directory listing
 def show_paths(path: Path) -> None:
     allfiles = glob(f"{str(path)}/*")
     onlydirs = [Path(f) for f in allfiles if (path / Path(f)).is_dir()]
-    onlyfiles = [{"file": Path(f), "type": "normal"} for f in allfiles if (path / Path(f)).is_file()]
+    onlyfiles = [{"file": Path(f)} for f in allfiles if (path / Path(f)).is_file()]
+    onlyfiles.extend(subdir_files(path, DEPTH))
 
-    # Get files from immediate subdirectories
-    for subdir in onlydirs:
-        subdir_path = Path(subdir)
-        subdir_name = subdir_path.name
-        subdir_files = glob(f"{str(subdir_path)}/*")
-        subdir_onlyfiles = [{"file": Path(f), "type": "subdir"} for f in subdir_files if Path(f).is_file()]
-        onlyfiles.extend(subdir_onlyfiles)
-
+    # Filter out some files
     onlyfiles = [f for f in onlyfiles if not f["file"].name.endswith(".pyc")]
 
     # Sort both lists by creation time
@@ -52,10 +74,8 @@ def show_paths(path: Path) -> None:
     filenames = []
 
     for item in onlyfiles:
-        if item["type"] == "normal":
-            filenames.append(item["file"].name)
-        elif item["type"] == "subdir":
-            filenames.append(f"{item['file'].parent.name}/{item['file'].name}")
+        name = str(item["file"]).replace(str(path), "")[1:]
+        filenames.append(name)
 
     items = []
 
