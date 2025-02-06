@@ -6,6 +6,10 @@ from pathlib import Path
 from subprocess import Popen, PIPE, check_output
 
 
+# Max amount of files to show
+FILE_LIMIT = 1_000
+
+
 # How deep into subdirectories to fetch files
 DEPTH = 2
 
@@ -54,6 +58,9 @@ def subdir_files(base_dir, depth):
     for subdir in onlydirs:
         onlyfiles.extend(get_files(subdir, 1))
 
+        if len(onlyfiles) >= FILE_LIMIT:
+            break
+
     return onlyfiles
 
 
@@ -62,7 +69,9 @@ def show_paths(path: Path) -> None:
     allfiles = glob(f"{str(path)}/*")
     onlydirs = [Path(f) for f in allfiles if (path / Path(f)).is_dir()]
     onlyfiles = [{"file": Path(f)} for f in allfiles if (path / Path(f)).is_file()]
-    onlyfiles.extend(subdir_files(path, DEPTH))
+
+    if len(onlyfiles) < FILE_LIMIT:
+        onlyfiles.extend(subdir_files(path, DEPTH))
 
     # Filter out some files
     onlyfiles = [f for f in onlyfiles if not f["file"].name.endswith(".pyc")]
