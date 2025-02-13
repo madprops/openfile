@@ -75,6 +75,7 @@ def show_paths(path: Path) -> None:
 
     # Filter out some files
     onlyfiles = [f for f in onlyfiles if not f["file"].name.endswith(".pyc")]
+    onlyfiles = [f for f in onlyfiles if "node_modules" not in str(f["file"])]
 
     # Sort both lists by creation time
     onlydirs.sort(key=getctime, reverse=True)
