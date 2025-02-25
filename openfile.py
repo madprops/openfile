@@ -11,7 +11,7 @@ FILE_LIMIT = 1_000
 
 
 # How deep into subdirectories to fetch files
-DEPTH = 2
+DEPTH = 1
 
 
 # Remove unecessary characters
