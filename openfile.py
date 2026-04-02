@@ -1,7 +1,6 @@
 import os
 from sys import argv
 from os.path import getctime
-from glob import glob
 from pathlib import Path
 from subprocess import Popen, PIPE, check_output
 
@@ -24,6 +23,25 @@ def get_pwd() -> str:
     return clean_path(str(os.getenv("PWD")))
 
 
+# Check if a path should be ignored
+def is_ignored(path: Path) -> bool:
+    ignored_dirs = {
+        "node_modules",
+        ".git",
+        "venv",
+        ".venv",
+        "__pycache__",
+        ".ruff_cache",
+    }
+
+    if ignored_dirs.intersection(path.parts):
+        return True
+
+    if path.name.endswith(".pyc"):
+        return True
+
+    return False
+
 # Get input information using rofi
 def get_input(prompt: str) -> str:
     proc = Popen(
@@ -43,9 +61,16 @@ def subdir_files(base_dir, depth):
         if current_depth > depth:
             return []
 
-        subdir_files = glob(f"{str(subdir_path)}/*")
-        subdir_onlyfiles = [{"file": Path(f)} for f in subdir_files if Path(f).is_file()]
-        subdir_onlydirs = [Path(d) for d in subdir_files if Path(d).is_dir()]
+        subdir_onlyfiles = []
+        subdir_onlydirs = []
+
+        for p in subdir_path.iterdir():
+            if is_ignored(p):
+                continue
+            if p.is_file():
+                subdir_onlyfiles.append({"file": p})
+            elif p.is_dir():
+                subdir_onlydirs.append(p)
 
         for subdir in subdir_onlydirs:
             subdir_onlyfiles.extend(get_files(subdir, current_depth + 1))
@@ -53,7 +78,7 @@ def subdir_files(base_dir, depth):
         return subdir_onlyfiles
 
     onlyfiles = []
-    onlydirs = [Path(d) for d in glob(f"{base_dir}/*") if Path(d).is_dir()]
+    onlydirs = [d for d in Path(base_dir).iterdir() if d.is_dir() and not is_ignored(d)]
 
     for subdir in onlydirs:
         onlyfiles.extend(get_files(subdir, 1))
@@ -66,17 +91,12 @@ def subdir_files(base_dir, depth):
 
 # Show a directory listing
 def show_paths(path: Path) -> None:
-    allfiles = glob(f"{str(path)}/*")
-    onlydirs = [Path(f) for f in allfiles if (path / Path(f)).is_dir()]
-    onlyfiles = [{"file": Path(f)} for f in allfiles if (path / Path(f)).is_file()]
+    allfiles = [p for p in path.iterdir() if not is_ignored(p)]
+    onlydirs = [p for p in allfiles if p.is_dir()]
+    onlyfiles = [{"file": p} for p in allfiles if p.is_file()]
 
     if len(onlyfiles) < FILE_LIMIT:
         onlyfiles.extend(subdir_files(path, DEPTH))
-
-    # Filter out some files
-    onlyfiles = [f for f in onlyfiles if not f["file"].name.endswith(".pyc")]
-    onlyfiles = [f for f in onlyfiles if "node_modules" not in str(f["file"])]
-    onlyfiles = [f for f in onlyfiles if ".git" not in str(f["file"])]
 
     # Sort both lists by creation time
     onlydirs.sort(key=getctime, reverse=True)
