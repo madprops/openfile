@@ -160,7 +160,6 @@ def show_paths(path: Path) -> None:
                 print(Path(path) / name)
             else:
                 show_paths(Path(path))
-
     else:
         # Output file path
         print(Path(path) / ans)
