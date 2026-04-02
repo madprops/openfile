@@ -32,6 +32,7 @@ def is_ignored(path: Path) -> bool:
         ".venv",
         "__pycache__",
         ".ruff_cache",
+        ".mypy_cache"
     }
 
     if ignored_dirs.intersection(path.parts):
