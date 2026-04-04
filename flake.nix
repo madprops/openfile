@@ -1,5 +1,5 @@
 {
-  description = "openfile - jump to directories";
+  description = "openfile - find files";
 
   # This pulls in the standard Nix package collection
   inputs = {
